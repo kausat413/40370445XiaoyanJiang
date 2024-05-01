@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:;"> -->
+    <meta http-equiv="Content-Security-Policy" >
+    <link rel="stylesheet" href="login.css">
+    <!-- 引入 layui.css -->
+    <!-- 引入Bootstrap CSS文件 -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+
+</style>
+    <title>Cards</title>
+</head>
+<body>
+
+    
+   
+    <!-- 导航栏 -->
+    <nav>
+        <div class="logo" style="position: relative;">
+            <h1>Trading Cards</h1>
+        </div>
+        <div class="user-profile" id="userProfile" style="position: absolute;right: 50px;top: 20px;">
+            <img src="/user.png" alt="user" id="userAvatar" style="width: 50px; height: 50px; float: left; margin-right: 10px;"/>
+            <span id="welcomeText" style="float: left; line-height: 55px; font-size: 20px;">Welcome, Guest!</span>
+            
+            <div id="dropdownContent" class="dropdown-content">
+                <% if (user) { %>
+                    <!-- 用户已登录，显示退出登录、新注册选项 -->
+                    <a href="/logout">Logout</a>
+                    <a href="/profile">Personal Centre</a>
+                <% } else { %>
+                    <!-- 用户未登录，显示去登录选项 -->
+                    <a href="/login">Login</a>
+                    <a href="/register">Register</a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+
+
+
+
+<!-- 报错模态框部分 -->
+<div class="modal fade " id="errorMessageModal" style="position: absolute;" tabindex="-1" role="dialog" aria-labelledby="errorMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog moka" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="mess" id="errorMessageModalLabel">Message</div>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="xinx">
+          <p id="modalMessage"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="buttons" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+<!-- 加载动画 -->
+<div id="loading-overlay">
+    <div id="loading-spinner"></div>
+    <div class="jiazai">Loading...</div>
+</div>
+    <!-- cards -->
+<div class="cradsquyu">
+
+
+    <div class="homes">
+        <a href="/cards">All Collect Cards</a>
+        <a href="#collect">My Collect Cards</a>
+        <a href="#like">My Like Cards</a>
+    </div>
+
+    <div class="Navigation">
+        <div class="one">
+            <div id="oneid"><%= total_cards.count1 %></div>
+            <!-- 收藏 -->
+            <div class="bianliang">Total collected cards</div>
+        </div>
+
+        <div class="two">
+            <div id="oneid"><%= total_cards.count2 %></div>
+            <!-- 喜欢 -->
+            <div class="bianliang">Total liked cards</div>
+        </div>
+
+        <div class="three">
+            <div id="oneid"><%= total_cards.rarity_count%></div>
+            <!-- 收藏最多的系列 -->
+            <div class="bianliang">Most collected series</div>
+        </div>
+
+        <div class="four">
+            <div id="oneid"><%= total_cards.Favorite_count%></div>
+            <!-- 收藏罕见系列 -->
+            <div class="bianliang">Favorite rare series</div>
+        </div>
+
+    </div>
+
+
+
+
+    <!-- 展示收藏的卡 -->
+    <div class="Fixation" id="collect">
+        <h2 style="text-align: center; padding: 20px 0;">My collection card</h2>
+        <div style="text-align: center; padding: 0 80px;">
+            <input class="profileinput" type="text" id="idFilter" placeholder="ID filter...">
+            <input class="profileinput" type="text" id="nameFilter" placeholder="Name filter...">
+            <select class="shaiXuan" id="rarityFilter">
+                <option value="">Select Rarity</option>
+                <option value="Common">Common</option>
+                <option value="Holo Rare V">Holo Rare V</option>
+                <option value="Rare">Rare</option>
+                <option value="Uncommon">Uncommon</option>
+                <option value="Holo Rare">Holo Rare</option>
+                <option value="Holo Rare VMAX">Holo Rare VMAX</option>
+            </select>
+            <input type="submit" value="Search" onclick="filterTable()">
+        </div>
+        
+        <table id="cardTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">ID</th>
+                    <th>Name</th>
+                    <th>Set Name</th>
+                    <th>HP</th>
+                    <th>Rarity</th>
+                    <th>STAGE</th>
+                    <th>ATTACKS</th>
+                    <th>USER</th>
+                    <th>OPERATE</th>
+                </tr>
+            </thead>
+            <tbody id="cardTableBody">
+                <% collect_cards.forEach(card => { %>
+                <tr>
+                    <td><%= card.id %></td>
+                    <td><%= card.name %></td>
+                    <td><%= card.set_name %></td>
+                    <td><%= card.hp %></td>
+                    <td><%= card.rarity %></td>
+                    <td><%= card.stage %></td>
+                    <td style="width: 400px;"><%= card.attacks %></td>
+                    <td><%= card.u_name %></td>
+                    <td><button class="deleteButton" data-id="<%= card.name %>">Delete</button></td>
+                </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+
+<!-- 展示喜欢的卡 -->
+<div class="Fixation" id="like" style="margin-top: 60px;">
+    <h2 style="text-align: center;padding: 20px 0;">My favorite card</h2>
+    <!-- <div style="text-align: center; padding: 0 80px;">
+        <input class="profileinput" type="text" id="idFilter" placeholder="ID filter...">
+        <input class="profileinput" type="text" id="nameFilter" placeholder="Name filter...">
+        <select class="shaiXuan" id="rarityFilter">
+            <optio value="">Select Rarity</option>
+            <option value="Common">Common</option>
+            <option value="Holo Rare V">Holo Rare V</option>
+            <option value="Rare">Rare</option>
+            <option value="Uncommon">Uncommon</option>
+            <option value="Holo Rare">Holo Rare</option>
+            <option value="Holo Rare VMAX">Holo Rare VMAX</option>
+        </select>
+        <input type="submit" value="Search" onclick="filterTable()">
+    </div> -->
+
+    <table id="cardTable">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">ID</th>
+                <th>Name</th>
+                <th>Set Name</th>
+                <th>HP</th>
+                <th>Rarity</th>
+                <th>STAGE</th>
+                <th>ATTACKS</th>
+                <th>USER</th>
+                <th>OPERATE</th>
+            </tr>
+        </thead>
+        <tbody id="cardTableBody">
+            <% likes_cards.forEach(card => { %>
+            <tr>
+                <td><%= card.id %></td>
+                <td><%= card.name %></td>
+                <td><%= card.set_name %></td>
+                <td><%= card.hp %></td>
+                <td><%= card.rarity %></td>
+                <td><%= card.stage %></td>
+                <td style="width: 400px;"><%= card.attacks %></td>
+                <td><%= card.u_name %></td>
+                <td><button class="LikedeleteButton" data-id="<%= card.name %>">Delete</button></td>
+            </tr>
+            <% }); %>
+        </tbody>
+    </table>
+</div>
+
+
+</div>
+
+<!-- footer -->
+<footer> 
+    <div class="Bottom_footnote">
+        Trading  Cards
+    </div>
+
+</footer>
+
+
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
+<script>
+    var search_cards_data = <%- JSON.stringify(collect_cards) %>;
+    console.log(search_cards_data);
+</script>
+
+<script>
+ function filterTable() {
+        var idInput = document.getElementById('idFilter').value.toUpperCase();
+        var nameInput = document.getElementById('nameFilter').value.toUpperCase();
+        var rarityInput = document.getElementById('rarityFilter').value.toUpperCase();
+        var rows = document.getElementById('cardTableBody').getElementsByTagName('tr');
+
+        for (var i = 0; i < rows.length; i++) {
+            var idColumn = rows[i].getElementsByTagName('td')[0];
+            var nameColumn = rows[i].getElementsByTagName('td')[1];
+            var rarityColumn = rows[i].getElementsByTagName('td')[4];
+            if (idColumn && nameColumn && rarityColumn) {
+                var idValue = idColumn.textContent || idColumn.innerText;
+                var nameValue = nameColumn.textContent || nameColumn.innerText;
+                var rarityValue = rarityColumn.textContent || rarityColumn.innerText;
+
+                if (idValue.toUpperCase().indexOf(idInput) > -1 &&
+                    nameValue.toUpperCase().indexOf(nameInput) > -1 &&
+                    rarityValue.toUpperCase().indexOf(rarityInput) > -1) {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+        }
+    }
+
+
+
+
+// 收藏删除事件
+const loadingOverlay = document.getElementById('loading-overlay');
+
+function deleteCard(cardId) {
+    
+
+    fetch('/deleteCard', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ cardId: cardId })
+    })
+    .then(response => {
+        if (response.ok) {
+            loadingOverlay.style.display = 'block'; // 显示加载动画
+            return 'Deleted collect successfully!';
+        } else {
+            return response.text();
+        }
+    })
+    .then(message => {
+        const modalMessage = document.getElementById('modalMessage');
+        modalMessage.innerText = message;
+        $('#errorMessageModal').modal('show').on('hidden.bs.modal', function () {
+            loadingOverlay.style.display = 'none';
+            window.location.reload();
+        });
+        
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        
+    });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteButtons = document.querySelectorAll('.deleteButton');
+    
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const cardId = this.getAttribute('data-id');
+            
+            deleteCard(cardId);
+        });
+    });
+});
+
+
+// 喜欢删除事件
+const LikeOverlay = document.getElementById('loading-overlay');
+
+function LikedeleteCard(cardName) {
+    
+
+    fetch('/deleteLikeCard', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ cardName: cardName })
+    })
+    .then(response => {
+        if (response.ok) {
+            loadingOverlay.style.display = 'block'; // 显示加载动画
+            return 'Deleted Like successfully!';
+        } else {
+            return response.text();
+        }
+    })
+    .then(message => {
+        const modalMessage = document.getElementById('modalMessage');
+        modalMessage.innerText = message;
+        $('#errorMessageModal').modal('show').on('hidden.bs.modal', function () {
+            loadingOverlay.style.display = 'none';
+            window.location.reload();
+        });
+        
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const LikedeleteButtons = document.querySelectorAll('.LikedeleteButton');
+    
+    LikedeleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const cardName = this.getAttribute('data-id');
+            LikedeleteCard(cardName);
+        });
+    });
+});
+
+
+
+// 请求查询卡牌及报错提示
+function addToCollection(cardName) {
+        fetch('/add-to-collection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ cardName: cardName })
+        })
+        .then(response => {
+            if (response.ok) {
+                return 'Card added to collection successfully!';
+            } else {
+                return response.text(); // 返回错误信息
+            }
+        })
+        .then(message => {
+            // 更新模态框中的消息文本
+            const modalMessage = document.getElementById('modalMessage');
+            modalMessage.innerText = message;
+            
+            // 显示模态框
+            $('#errorMessageModal').modal('show');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // 等待页面加载完成后再调用 addToCollection 函数
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取按钮元素
+        const addToCollectionButton = document.getElementById('addToCollectionButton');
+        
+        // 添加按钮点击事件监听器
+        addToCollectionButton.addEventListener('click', function() {
+            // 调用 addToCollection 函数
+            addToCollection("Card Name Example");
+        });
+    });
+
+// 点赞及报错提示
+function addGivealikes(cardName) {
+        fetch('/givealiecard', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ cardName: cardName })
+        })
+        .then(response => {
+            if (response.ok) {
+                return 'Liked successfully!';
+            } else {
+                return response.text(); // 返回错误信息
+            }
+        })
+        .then(message => {
+            // 更新模态框中的消息文本
+            const modalMessage = document.getElementById('modalMessage');
+            modalMessage.innerText = message;
+            
+            // 显示模态框
+            $('#errorMessageModal').modal('show');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // 等待页面加载完成后再调用 addToCollection 函数
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取按钮元素
+        const addToCollectionButton = document.getElementById('addToCollectionButton');
+        
+        // 添加按钮点击事件监听器
+        addToCollectionButton.addEventListener('click', function() {
+            // 调用 addToCollection 函数
+            addToCollection("Card Name Example");
+        });
+    });
+
+
+
+    //搜索功能
+    document.addEventListener('DOMContentLoaded', function() {
+    const searchButton = document.getElementById('search-button');
+    const loadingOverlay = document.getElementById('loading-overlay');
+
+    searchButton.addEventListener('click', function() {
+        const searchInput = document.getElementById('search-input').value;
+        console.log(searchInput);
+
+        // 显示加载动画
+        loadingOverlay.style.display = 'block';
+
+        // 发送 POST 请求到后端的 /searchsvalue 路由，将 searchInput 作为请求体的数据
+        fetch('/searchsvalue', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ searchInput }),
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('Search request successful');
+                // 接收到响应后隐藏加载动画
+                setTimeout(() => {
+                   loadingOverlay.style.display = 'none'; 
+                }, 1000);
+                // 接收到响应后立即刷新页面
+                setTimeout(() => {
+                    window.location.reload();
+                }, 950); // 3秒后刷新页面
+            } else {
+                console.error('Search request failed:', response.statusText);
+                // 隐藏加载动画
+                loadingOverlay.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Error sending search request:', error);
+            // 隐藏加载动画
+            loadingOverlay.style.display = 'none';
+        });
+    });
+});
+
+
+// 获取下拉框内容元素
+var dropdownContent = document.getElementById("dropdownContent");
+
+// 切换下拉框的显示与隐藏
+function toggleDropdown() {
+    if (dropdownContent.style.display === "block") {
+        dropdownContent.style.display = "none";
+    } else {
+        dropdownContent.style.display = "block";
+    }
+}
+
+// 点击页面其他地方隐藏下拉框
+window.onclick = function(event) {
+    if (!event.target.matches('.dropbtn')) {
+        if (dropdownContent.style.display === "block") {
+            dropdownContent.style.display = "none";
+        }
+    }
+};
+
+
+
+
+// 判断是否登录，未登录显示Guest，登录后显示用户名
+function updateWelcomeText(user) {
+        const welcomeText = document.getElementById("welcomeText");
+        if (user) {
+            welcomeText.innerText = `Welcome, ${user}!`;
+        } else {
+            welcomeText.innerText = "Hello！";
+        }
+    }
+
+    // 在页面加载时更新欢迎语句
+    window.onload = function() {
+        updateWelcomeText("<%= user %>");
+    };
+    </script>
+
+
+
+
+</body>
+</html>

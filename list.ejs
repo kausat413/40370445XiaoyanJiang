@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:;"> -->
+    <meta http-equiv="Content-Security-Policy" >
+    <link rel="stylesheet" href="layui.css">
+    <link rel="stylesheet" href="login.css">
+    <!-- 引入Bootstrap CSS文件 -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+
+</style>
+    <title>Cards</title>
+</head>
+<body>
+   
+    <!-- 导航栏 -->
+    <nav>
+        <div class="logo" style="position: relative;">
+            <h1>Trading Cards</h1>
+        </div>
+        <div class="user-profile" id="userProfile" style="position: absolute;right: 50px;top: 20px;">
+            <img src="/user.png" alt="user" id="userAvatar" style="width: 50px; height: 50px; float: left; margin-right: 10px;"/>
+            <span id="welcomeText" style="float: left; line-height: 55px; font-size: 20px;">Welcome, Guest!</span>
+            
+            <div id="dropdownContent" class="dropdown-content">
+                <% if (user) { %>
+                    <!-- 用户已登录，显示退出登录、新注册选项 -->
+                    <a href="/logout">Logout</a>
+                    <a href="/profile">Personal Centre</a>
+                <% } else { %>
+                    <!-- 用户未登录，显示去登录选项 -->
+                    <a href="/login">Login</a>
+                    <a href="/register">Register</a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+
+
+<!-- 报错模态框部分 -->
+<div class="modal fade " id="errorMessageModal" style="position: absolute;" tabindex="-1" role="dialog" aria-labelledby="errorMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog moka" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="mess" id="errorMessageModalLabel">Message</div>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="xinx">
+          <p id="modalMessage"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="buttons" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+    <!-- cards -->
+<div class="cradsquyu">
+ 
+        <div class="ul_li">
+            <ul>
+            <a href="/cards"><li>all-cards</li></a>
+            
+            <a href="/searchs"><li>Search</li></a>
+            <a href="/list"><li>List</li></a>
+            </ul>
+        </div>
+        <!-- 搜索功能 -->
+        <div class="search-container">
+            <input  type="text" id="search-input" class="search-inp" placeholder="Enter search term...">
+            <!-- 稀有度筛选器 -->
+        <select class="shaiXuan" id="rarityFilter">
+            <option value="">Select Rarity</option>
+            <option value="Common">Common</option>
+            <option value="Holo Rare V">Holo Rare V</option>
+            <option value="Rare">Rare</option>
+            <option value="Uncommon">Uncommon</option>
+            <option value="Holo Rare">Holo Rare</option>
+            <option value="Holo Rare VMAX">Holo Rare VMAX</option>
+        </select>
+            <button id="search-button">Search</button>
+        </div>
+
+        <!-- 表格 -->
+        <div class="suoding">
+        <table id="cardTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">ID</th>
+                    <th>Name</th>
+                    <th>Set Name</th>
+                    <th>HP</th>
+                    <th>Rarity</th>
+                    <th>STAGE</th>
+                    <th>ATTACKS</th>
+                    <th onclick="sortTable(7)">LIKES <span id="sortIcon">&#x25BC;</span> </th>
+                    <!-- <th>OPERATE</th> -->
+                </tr>
+            </thead>
+            <tbody>
+                <% search_cards.forEach(card => { %>
+                <tr>
+                    <td><%= card.id %></td>
+                    <td><%= card.name %></td>
+                    <td><%= card.set_name %></td>
+                    <td><%= card.hp %></td>
+                    <td><%= card.rarity %></td>
+                    <td><%= card.stage %></td>
+                    <td style="width: 400px;"><%= card.attacks %></td>
+                    <td><%= card.likes %></td>
+                    <!-- <td><button class="deleteButton" data-id="<%= card.name %>">Delete</button></td> -->
+                </tr>
+                <% }); %>
+                <!-- Add more rows dynamically using JavaScript -->
+            </tbody>
+        </table>
+        </div>
+   
+                <!-- 加载动画 -->
+                <div id="loading-overlay">
+                    <div id="loading-spinner"></div>
+                    <div class="jiazai">Loading...</div>
+                </div>
+
+    
+</div>
+
+<!-- footer -->
+<footer> 
+    <div class="Bottom_footnote">
+        Trading  Cards
+    </div>
+
+</footer>
+
+
+
+<script src="layui.js"></script>
+<!-- <script src="ejs.js"></script> -->
+
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
+<script>
+    var search_cards_data = <%- JSON.stringify(search_cards) %>;
+    console.log(search_cards_data);
+</script>
+
+<script>
+
+// 请求查询卡牌及报错提示
+function addToCollection(cardName) {
+        fetch('/add-to-collection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ cardName: cardName })
+        })
+        .then(response => {
+            if (response.ok) {
+                return 'Card added to collection successfully!';
+            } else {
+                return response.text(); // 返回错误信息
+            }
+        })
+        .then(message => {
+            // 更新模态框中的消息文本
+            const modalMessage = document.getElementById('modalMessage');
+            modalMessage.innerText = message;
+            
+            // 显示模态框
+            $('#errorMessageModal').modal('show');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // 等待页面加载完成后再调用 addToCollection 函数
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取按钮元素
+        const addToCollectionButton = document.getElementById('addToCollectionButton');
+        
+        // 添加按钮点击事件监听器
+        addToCollectionButton.addEventListener('click', function() {
+            // 调用 addToCollection 函数
+            addToCollection("Card Name Example");
+        });
+    });
+
+// 点赞及报错提示
+function addGivealikes(cardName) {
+        fetch('/givealiecard', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ cardName: cardName })
+        })
+        .then(response => {
+            if (response.ok) {
+                return 'Liked successfully!';
+            } else {
+                return response.text(); // 返回错误信息
+            }
+        })
+        .then(message => {
+            // 更新模态框中的消息文本
+            const modalMessage = document.getElementById('modalMessage');
+            modalMessage.innerText = message;
+            
+            // 显示模态框
+            $('#errorMessageModal').modal('show');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // 等待页面加载完成后再调用 addToCollection 函数
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取按钮元素
+        const addToCollectionButton = document.getElementById('addToCollectionButton');
+        
+        // 添加按钮点击事件监听器
+        addToCollectionButton.addEventListener('click', function() {
+            // 调用 addToCollection 函数
+            addToCollection("Card Name Example");
+        });
+    });
+
+
+
+    //搜索功能
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchButton = document.getElementById('search-button');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        searchButton.addEventListener('click', function() {
+            const searchInput = document.getElementById('search-input').value;
+            const rarityFilter = document.getElementById('rarityFilter').value;
+
+            // 显示加载动画
+            loadingOverlay.style.display = 'block';
+
+            // 发送 POST 请求到后端的 /searchsvalue 路由，将 searchInput 和 rarityFilter 作为请求体的数据
+            fetch('/searchsvalue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ searchInput, rarityFilter }),
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Search request successful');
+                    // 接收到响应后隐藏加载动画
+                    setTimeout(() => {
+                       loadingOverlay.style.display = 'none'; 
+                    }, 500);
+                    // 接收到响应后立即刷新页面
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 450); // 3秒后刷新页面
+                } else {
+                    console.error('Search request failed:', response.statusText);
+                    // 隐藏加载动画
+                    loadingOverlay.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error sending search request:', error);
+                // 隐藏加载动画
+                loadingOverlay.style.display = 'none';
+            });
+        });
+    });
+
+
+
+// 获取likes表头元素和排序图标元素
+const likesHeader = document.querySelector("#cardTable th:nth-child(8)");
+const sortIcon = document.querySelector("#sortIcon");
+
+// 定义初始排序顺序
+let ascending = true;
+
+// 监听likes表头的点击事件，触发排序
+likesHeader.addEventListener('click', () => {
+    const cardRows = document.querySelectorAll("#cardTable tbody tr");
+
+    // 将行转换为数组以便进行排序
+    const rowsArray = Array.from(cardRows);
+
+    // 根据likes列的值进行排序
+    rowsArray.sort((a, b) => {
+        const valueA = parseInt(a.cells[7].innerText.trim());
+        const valueB = parseInt(b.cells[7].innerText.trim());
+
+        if (ascending) {
+            return valueA - valueB;
+        } else {
+            return valueB - valueA;
+        }
+    });
+
+    // 更新表格的行顺序
+    const tbody = document.querySelector("#cardTable tbody");
+    tbody.innerHTML = '';
+    
+    rowsArray.forEach(row => {
+        tbody.appendChild(row);
+    });
+
+    // 切换排序顺序并更新排序图标
+    ascending = !ascending;
+    sortIcon.innerHTML = ascending ? '&#x25B2;' : '&#x25BC;'; // 切换为降序/升序图标
+});
+
+
+
+
+// 获取下拉框内容元素
+var dropdownContent = document.getElementById("dropdownContent");
+
+// 切换下拉框的显示与隐藏
+function toggleDropdown() {
+    if (dropdownContent.style.display === "block") {
+        dropdownContent.style.display = "none";
+    } else {
+        dropdownContent.style.display = "block";
+    }
+}
+
+// 点击页面其他地方隐藏下拉框
+window.onclick = function(event) {
+    if (!event.target.matches('.dropbtn')) {
+        if (dropdownContent.style.display === "block") {
+            dropdownContent.style.display = "none";
+        }
+    }
+};
+
+
+
+
+// 判断是否登录，未登录显示Guest，登录后显示用户名
+function updateWelcomeText(user) {
+        const welcomeText = document.getElementById("welcomeText");
+        if (user) {
+            welcomeText.innerText = `Welcome, ${user}!`;
+        } else {
+            welcomeText.innerText = "Welcome, Guest!";
+        }
+    }
+
+    // 在页面加载时更新欢迎语句
+    window.onload = function() {
+        updateWelcomeText("<%= user %>");
+    };
+    </script>
+
+
+
+
+</body>
+</html>

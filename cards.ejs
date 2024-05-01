@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:;"> -->
+    <meta http-equiv="Content-Security-Policy" >
+    <link rel="stylesheet" href="login.css">
+    <!-- 引入Bootstrap CSS文件 -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+
+</style>
+    <title>Cards</title>
+</head>
+<body>
+   
+    <!-- 导航栏 -->
+    <nav>
+        <div class="logo" style="position: relative;">
+            <h1>Trading Cards</h1>
+        </div>
+        <div class="user-profile" id="userProfile" style="position: absolute;right: 50px;top: 20px;">
+            <img src="/user.png" alt="user" id="userAvatar" style="width: 50px; height: 50px; float: left; margin-right: 10px;"/>
+            <span id="welcomeText" style="float: left; line-height: 55px; font-size: 20px;">Welcome, Guest!</span>
+            
+            <div id="dropdownContent" class="dropdown-content">
+                <% if (user) { %>
+                    <!-- 用户已登录，显示退出登录、新注册选项 -->
+                    <a href="/logout">Logout</a>
+                    <a href="/profile">Personal Centre</a>
+                <% } else { %>
+                    <!-- 用户未登录，显示去登录选项 -->
+                    <a href="/login">Login</a>
+                    <a href="/register">Register</a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+
+
+<!-- 报错模态框部分 -->
+<div class="modal fade " id="errorMessageModal" style="position: absolute;" tabindex="-1" role="dialog" aria-labelledby="errorMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog moka" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <div class="mess" id="errorMessageModalLabel">Message</div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+                <div class="xinx">
+                    <p id="modalMessage"></p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="buttons" data-dismiss="modal">Close</button>
+                </div>
+
+        </div>
+    </div>
+</div>
+
+
+    <!-- cards -->
+<div class="cradsquyu">
+            <div class="ul_li">
+                <ul>
+                <a href="/cards"><li>all-cards</li></a>
+                
+                <a href="/searchs"><li>Search</li></a>
+                <a href="/list"><li>List</li></a>
+                </ul>
+            </div>
+            
+            <div class="suoding">
+                <% all_cards.forEach(card => { %>
+                    <div class="yizhang">
+                        <img class="kapai" src="<%= card.url_img %>/high.webp" alt="<%= card.name %>"  />
+                        <div class="box">
+                        <button class="shouchang" type="button" onclick="addToCollection('<%= card.name %>')">
+                            Collect</button>
+                        <button class="shouchang1" type="button" onclick="addGivealikes('<%= card.name %>')">
+                            Give a like</button>
+                        </div>
+                    </div>
+                <% }); %> 
+            </div>
+
+</div>
+
+
+<!-- footer -->
+<footer> 
+    <div class="Bottom_footnote">
+        Trading  Cards
+    </div>
+
+</footer>
+
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
+
+
+
+<script>
+
+
+// 请求查询卡牌及报错提示
+function addToCollection(cardName) {
+        fetch('/add-to-collection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ cardName: cardName })
+        })
+        .then(response => {
+            if (response.ok) {
+                return 'Card added to collection successfully!';
+            } else {
+                return response.text(); // 返回错误信息
+            }
+        })
+        .then(message => {
+            // 更新模态框中的消息文本
+            const modalMessage = document.getElementById('modalMessage');
+            modalMessage.innerText = message;
+            
+            // 显示模态框
+            $('#errorMessageModal').modal('show');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // 等待页面加载完成后再调用 addToCollection 函数
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取按钮元素
+        const addToCollectionButton = document.getElementById('addToCollectionButton');
+        
+        // 添加按钮点击事件监听器
+        addToCollectionButton.addEventListener('click', function() {
+            // 调用 addToCollection 函数
+            addToCollection("Card Name Example");
+        });
+    });
+
+// 点赞及报错提示
+function addGivealikes(cardName) {
+        fetch('/givealiecard', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ cardName: cardName })
+        })
+        .then(response => {
+            if (response.ok) {
+                return 'Liked successfully!';
+            } else {
+                return response.text(); // 返回错误信息
+            }
+        })
+        .then(message => {
+            // 更新模态框中的消息文本
+            const modalMessage = document.getElementById('modalMessage');
+            modalMessage.innerText = message;
+            
+            // 显示模态框
+            $('#errorMessageModal').modal('show');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // 等待页面加载完成后再调用 addToCollection 函数
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取按钮元素
+        const addToCollectionButton = document.getElementById('addToCollectionButton');
+        
+        // 添加按钮点击事件监听器
+        addToCollectionButton.addEventListener('click', function() {
+            // 调用 addToCollection 函数
+            addToCollection("Card Name Example");
+        });
+    });
+
+
+
+    //搜索功能
+    document.addEventListener('DOMContentLoaded', function() {
+    const searchButton = document.getElementById('search-button');
+
+    searchButton.addEventListener('click', function() {
+    const searchInput = document.getElementById('search-input').value;
+    console.log(searchInput);
+
+    // 发送 POST 请求到后端的 /searchsvalue 路由，将 searchInput 作为请求体的数据
+    fetch('/searchsvalue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ searchInput }),
+    })
+     .then(response => response.json())
+     .then(data => console.log(data))
+     .catch(error => console.error('Error sending search request:', error));
+  });
+
+});
+
+
+
+
+
+// 获取下拉框内容元素
+var dropdownContent = document.getElementById("dropdownContent");
+
+// 切换下拉框的显示与隐藏
+function toggleDropdown() {
+    if (dropdownContent.style.display === "block") {
+        dropdownContent.style.display = "none";
+    } else {
+        dropdownContent.style.display = "block";
+    }
+}
+
+// 点击页面其他地方隐藏下拉框
+window.onclick = function(event) {
+    if (!event.target.matches('.dropbtn')) {
+        if (dropdownContent.style.display === "block") {
+            dropdownContent.style.display = "none";
+        }
+    }
+};
+
+
+
+
+// 判断是否登录，未登录显示Guest，登录后显示用户名
+function updateWelcomeText(user) {
+        const welcomeText = document.getElementById("welcomeText");
+        if (user) {
+            welcomeText.innerText = `Welcome, ${user}!`;
+        } else {
+            welcomeText.innerText = "Welcome, Guest!";
+        }
+    }
+
+    // 在页面加载时更新欢迎语句
+    window.onload = function() {
+        updateWelcomeText("<%= user %>");
+    };
+    </script>
+
+
+
+
+</body>
+</html>
